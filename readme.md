@@ -43,7 +43,7 @@ The entire system runs using Docker containers.
 
 ### 1️⃣ Clone repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/uyaware/E-Commerce-Website
 cd ecommerce
 ```
 
