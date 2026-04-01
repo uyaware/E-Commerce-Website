@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  pending
+  paid
+  shipped
+  delivered
+  cancelled
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  fullName      String?  @db.VarChar(255)
+  address       String?  @db.VarChar(255)
+  email         String   @unique @db.VarChar(255)
+  password      String   @db.VarChar(255)
+  phone         String?  @db.VarChar(255)
+  avatar        String?  @db.VarChar(255)
+  isAdmin       Boolean  @default(false)
+  refresh_token String?  @db.Text
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  cart          Cart?
+  orders        Order[]
+  reviews       Review[]
+
+  @@map("users")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(255)
+  slug      String   @unique @db.VarChar(255)
+
+  products  Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Product {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(255)
+  price        Int
+  image        String?  @db.VarChar(255)
+  detailDesc   String   @db.Text
+  quantity     Int
+  sold         Int      @default(0)
+
+  category     Category @relation(fields: [categoryId], references: [id])
+  categoryId   Int
+
+  rating       Float    @default(0)
+  ratingCount  Int      @default(0)
+
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  reviews      Review[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("products")
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+
+  user      User       @relation(fields: [userId], references: [id])
+  userId    Int        @unique
+
+  items     CartItem[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    Int
+
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+
+  quantity  Int
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
+}
+
+model Order {
+  id          Int          @id @default(autoincrement())
+
+  user        User         @relation(fields: [userId], references: [id])
+  userId      Int
+
+  totalPrice  Int
+  status      OrderStatus  @default(pending)
+
+  items       OrderItem[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int
+
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+
+  price     Int      // snapshot price
+  quantity  Int
+
+  @@map("order_items")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+
+  rating    Int      // 1-5
+  comment   String?  @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@map("reviews")
+}

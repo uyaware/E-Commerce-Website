@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+.vscode
+.github
+uploads
+02-admin-template-starter
+03-client-template-master
